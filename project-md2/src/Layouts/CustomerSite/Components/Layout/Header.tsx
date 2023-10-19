@@ -9,25 +9,23 @@ import { NavLink } from "react-router-dom";
 function Header() {
   // const userId = JSON.parse(localStorage.getItem("userID") || "");
 
-  const getData = localStorage.getItem("asscessToken");
+  const token = localStorage.getItem("asscessToken");
   // const isCheck = JSON.parse(getData || "");
 
   const [users, setUsers] = useState<any>([]);
   // const [userEmail, setUserEmail] = useState<string>("");
-  const [isCheck, setIsCheck] = useState(getData);
+  const [isCheck, setIsCheck] = useState(token);
 
   useEffect(() => {
     //goi api dde thuc hien chuc nang hien thi tat ca cac san pham
 
     const data = async () => {
-      const oneUser = await getOneUser(getData);
+      const oneUser = await getOneUser(token);
 
       setUsers(oneUser);
     };
     data();
   }, []);
-
-  // const loggedInUser = users.find((user) => user.id === userId);
 
   const navigate = useNavigate();
   const handleLogout = () => {
@@ -155,9 +153,9 @@ function Header() {
                       <span>TRANG CHỦ</span>
                     </NavLink>
                   </li>
-                  {/* <li>
+                  <li>
                     <a href="#lipstick">SON MÔI</a>
-                  </li> */}
+                  </li>
                   <li>
                     <a href="#perfume">NƯỚC HOA</a>
                   </li>

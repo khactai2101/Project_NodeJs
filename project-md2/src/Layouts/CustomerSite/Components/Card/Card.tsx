@@ -4,13 +4,13 @@ import { IProduct } from "../../../../Types/type";
 import { Link } from "react-router-dom";
 
 const Card = () => {
-  const [products, setProducts] = useState<IProduct[]>([]);
-
+  const [products, setProducts] = useState<any>([]);
+  const token = localStorage.getItem("asscessToken");
   useEffect(() => {
     //goi api dde thuc hien chuc nang hien thi tat ca cac san pham
     const data = async () => {
-      const allProducts = await getAllProducts();
-      setProducts(allProducts);
+      const allProducts = await getAllProducts(token);
+      setProducts(allProducts?.data);
     };
     data();
   }, []);
@@ -18,28 +18,25 @@ const Card = () => {
     <>
       <div className="min-h-screen bg-gradient-to-tr from-pink-200 to-pink-0 flex justify-center items-center py-20">
         <div className="md:px-4 md:grid md:grid-cols-2 lg:grid-cols-4 gap-5 space-y-4 md:space-y-0">
-          {products?.map((product) => (
-            <div className="max-w-xs bg-white px-6 pt-6 pb-2 rounded-xl shadow-lg transform hover:scale-105 transition duration-500">
+          {products?.map((product: any) => (
+            <div
+              key={product.id}
+              className="max-w-[250px] bg-white px-6 pt-6 pb-2 rounded-xl shadow-lg transform hover:scale-105 transition duration-500"
+            >
               <Link to={`/product/${product.id}`}>
                 <div className="relative">
                   <img
                     className="w-full rounded-xl"
-                    src={product?.images[0].url}
+                    src={product?.image[0]?.src}
                     alt="Colors"
                   />
-                  {/* <p className="absolute top-0 bg-pink-300 text-gray-800 font-semibold py-1 px-3 rounded-br-lg rounded-tl-lg">
-                    - 30%
-                  </p> */}
                 </div>
               </Link>
               <p className="mt-4 text-gray-800 text-s font-bold cursor-pointer h-[60px]">
-                {product?.name}
+                {product?.nameProduct}
               </p>
               <div className="my-4">
                 <div className="flex space-x-1 items-center gap-12">
-                  {/* <p className="text-red-300 line-through">
-                    {product?.price.toLocaleString()} VNĐ
-                  </p> */}
                   <p className="text-red-500">
                     {Number(product?.price).toLocaleString()} VNĐ
                   </p>

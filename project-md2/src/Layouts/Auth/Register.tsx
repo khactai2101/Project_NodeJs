@@ -15,15 +15,6 @@ interface FormData {
 const Register: React.FC = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState<IUser[]>([]);
-  useEffect(() => {
-    //goi api dde thuc hien chuc nang hien thi tat ca cac san pham
-    const data = async () => {
-      const allUsers = await getAllUsers();
-      setUsers(allUsers);
-    };
-    data();
-  }, []);
-
   const initialFormData: FormData = {
     email: "",
     password: "",
@@ -46,7 +37,6 @@ const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const findUser = users.find((user) => user.email === formData.email);
 
     // Validate
     const newErrors: Partial<FormData> = {};
@@ -66,48 +56,36 @@ const Register: React.FC = () => {
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Mật khẩu xác nhận không khớp.";
     }
-    if (findUser) {
-      notification.warning({
-        message: "Email đã tồn tại",
-        placement: "topRight",
-      });
-
-      return;
-    }
 
     setErrors(newErrors);
 
     if (Object.values(newErrors).every((error) => !error)) {
       try {
         // Gửi yêu cầu đăng ký lên API
-        const response = await axios.post("http://localhost:8080/users", {
-          email: formData.email,
-          password: formData.password,
-          // Thêm các giá trị cố định vào đối tượng người dùng khi đăng ký thành công
-          gender: "Nam",
-          phone: "",
-          address: "",
-          cart: [],
-          discount: "",
-          role: "User",
-          avatar:
-            "https://scontent.fdad3-5.fna.fbcdn.net/v/t39.30808-6/275566269_1683334372010331_8323418812371684654_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=730e14&_nc_ohc=9KMEhDnbJn0AX_ccZUZ&_nc_ht=scontent.fdad3-5.fna&oh=00_AfAfKruFkDGYdn-vVRlozBDdiVlle2ivfXL6BQYSpn0fFg&oe=64F4D9A6",
-          status: "Active",
-        });
+        const response = await axios.post(
+          "http://localhost:8080/api/v1/auth/register",
+          {
+            email: formData.email,
+            password: formData.password,
+          }
+        );
+        console.log(response, 11111111);
 
-        if (response.status === 201) {
+        if (response.data.success) {
           notification.success({
             message: "Đăng ký thành công",
             placement: "topRight",
           });
           setFormData(initialFormData);
-
           setTimeout(() => {
             setSuccessMessage("");
             navigate("/login");
           }, 1000);
         } else {
-          setSuccessMessage("   ");
+          notification.warning({
+            message: "Email đã tồn tại",
+            placement: "topRight",
+          });
         }
       } catch (error) {
         setSuccessMessage("Có lỗi xảy ra. Vui lòng thử lại sau.");

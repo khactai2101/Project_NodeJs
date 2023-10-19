@@ -71,10 +71,31 @@ export const updateUser = async (id, body) => {
 
 export const deleteUser = async ({ id }) => {
   try {
-    const response = await db.User.destroy({
-      where: { id },
-    });
-    return response;
+    if (!id) {
+      throw new Error("Bad request");
+    }
+
+    // Lấy thông tin user hiện tại
+    const user = await db.User.findOne({ where: { id } });
+
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    // Chuyển đổi giá trị của trường "status"
+    const newStatus = user.status === 1 ? 0 : 1;
+
+    // Cập nhật giá trị mới cho trường "status"
+    const change = await db.User.update(
+      { status: newStatus },
+      { where: { id } }
+    );
+
+    return {
+      success: true,
+      message: "User status updated successfully",
+      data: user,
+    };
   } catch (error) {
     return error;
   }

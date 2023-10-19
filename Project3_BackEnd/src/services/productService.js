@@ -72,8 +72,7 @@ export const deleteProductServices = async ({ id }) => {
       };
     }
     return {
-      success: response > 0 ? true : false,
-      message: `Delete Product successfully`,
+      data: response,
     };
   } catch (error) {
     return error;

@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { IProduct } from "../../../../Types/type";
-import { getAllProducts, deleteProducts } from "../../../../API";
+import { getAllProducts, BlockProducts } from "../../../../API";
 import { Button, Label, Modal, TextInput } from "flowbite-react";
 import EditProduct from "../Modal/EditProduct";
 import { message } from "antd";
 
 const TableProduct: React.FC = () => {
+  const token: string | null = localStorage.getItem("asscessToken");
+
+  const [loading, setLoading] = useState<any>(true);
+
   const [name, setName] = useState<any>();
   const [category, setCategory] = useState<any>();
   const [brand, setBrand] = useState<any>();
@@ -20,101 +23,104 @@ const TableProduct: React.FC = () => {
 
   const [openModal, setOpenModal] = useState<string | undefined>();
   const props = { openModal, setOpenModal };
-  const [products, setProducts] = useState<IProduct[]>([]);
+  const [products, setProducts] = useState<any>([]);
 
   useEffect(() => {
     //goi api dde thuc hien chuc nang hien thi tat ca cac san pham
     const data = async () => {
-      const allProducts = await getAllProducts();
-      setProducts(allProducts);
+      const allProducts = await getAllProducts(token);
+
+      setProducts(allProducts?.data);
     };
     data();
-  }, []);
+  }, [loading]);
 
   //Add san pham
 
-  const handleAdd = async () => {
-    const newProduct = {
-      name: name,
-      price: price,
-      description: description,
-      brand: brand,
-      provider: provider,
-      category: category,
-      stock: stock,
-      images: [
-        { id: 1, url: image1 },
-        { id: 2, url: image2 },
-        { id: 3, url: image3 },
-      ],
-      feedback: [],
-    };
+  // const handleAdd = async () => {
+  //   const newProduct = {
+  //     name: name,
+  //     price: price,
+  //     description: description,
+  //     brand: brand,
+  //     provider: provider,
+  //     category: category,
+  //     stock: stock,
+  //     images: [
+  //       { id: 1, url: image1 },
+  //       { id: 2, url: image2 },
+  //       { id: 3, url: image3 },
+  //     ],
+  //     feedback: [],
+  //   };
 
-    try {
-      // Thực hiện yêu cầu POST để thêm sản phẩm mới
-      await axios.post("http://localhost:8080/product/", newProduct);
+  //   try {
+  //     // Thực hiện yêu cầu POST để thêm sản phẩm mới
+  //     await axios.post("http://localhost:8080/product/", newProduct);
 
-      // Sau khi thêm sản phẩm mới thành công, cập nhật danh sách sản phẩm
-      const updatedProducts = await getAllProducts();
-      setProducts(updatedProducts);
+  //     // Sau khi thêm sản phẩm mới thành công, cập nhật danh sách sản phẩm
+  //     const updatedProducts = await getAllProducts();
+  //     setProducts(updatedProducts);
 
-      // Đóng modal sau khi thêm sản phẩm mới
-      setOpenModal(undefined);
-      //clear value sau khi add
-      setName("");
-      setCategory("");
-      setBrand("");
-      setPrice("");
-      setDescription("");
-      setImage1("");
-      setImage2("");
-      setImage3("");
-      setStock("");
-      setProvider("");
-      message.open({
-        type: "success",
-        content: "Đã thêm sản phẩm",
-      });
-    } catch (error) {
-      // Xử lý lỗi ở đây
-      console.error("Error adding product: ", error);
-    }
-  };
+  //     // Đóng modal sau khi thêm sản phẩm mới
+  //     setOpenModal(undefined);
+  //     //clear value sau khi add
+  //     setName("");
+  //     setCategory("");
+  //     setBrand("");
+  //     setPrice("");
+  //     setDescription("");
+  //     setImage1("");
+  //     setImage2("");
+  //     setImage3("");
+  //     setStock("");
+  //     setProvider("");
+  //     message.open({
+  //       type: "success",
+  //       content: "Đã thêm sản phẩm",
+  //     });
+  //   } catch (error) {
+  //     // Xử lý lỗi ở đây
+  //     console.error("Error adding product: ", error);
+  //   }
+  // };
 
   //Edit product
-  const fetchProducts = () => {
-    axios.get("http://localhost:8080/product/").then((response) => {
-      setProducts(response.data);
-    });
-  };
+  // const fetchProducts = () => {
+  //   axios.get("http://localhost:8080/product/").then((response) => {
+  //     setProducts(response.data);
+  //   });
+  // };
 
-  useEffect(() => fetchProducts(), []);
+  // useEffect(() => fetchProducts(), []);
 
-  const handleUpdate = () => {
-    axios
-      .get("http://localhost:8080/product/")
-      .then(() => {
-        fetchProducts();
-      })
-      .catch((error) => {
-        console.log(error.message);
-      });
-  };
+  // const handleUpdate = () => {
+  //   axios
+  //     .get("http://localhost:8080/product/")
+  //     .then(() => {
+  //       fetchProducts();
+  //     })
+  //     .catch((error) => {
+  //       console.log(error.message);
+  //     });
+  // };
 
   // Hàm xóa sản phẩm
-  const handleDelete = (productId: number) => {
-    console.log(productId);
-    // Gọi API hoặc thực hiện xóa sản phẩm tại đây
+  const handleDelete = (id: any) => {
+    const req = { token, id };
     const data = async () => {
-      const response = await deleteProducts(productId);
-      console.log(response);
-
-      const dellProduct = await getAllProducts();
-      setProducts(dellProduct);
+      const response = await BlockProducts(req);
+      setLoading(!loading);
+      if ((response as any).status === 200) {
+        message.success(
+          response?.data.data.data.status === 0
+            ? "hidden product successfully"
+            : "Unhidden product successfully"
+        );
+      }
     };
     data();
   };
-
   return (
     <>
       <div className="flex gap-4 items-center mb-2">
@@ -351,7 +357,7 @@ const TableProduct: React.FC = () => {
               </div>
             </Modal.Body>
             <Modal.Footer>
-              <Button onClick={handleAdd}>Thêm</Button>
+              {/* <Button onClick={handleAdd}>Thêm</Button> */}
               <Button
                 color="gray"
                 onClick={() => props.setOpenModal(undefined)}
@@ -388,41 +394,67 @@ const TableProduct: React.FC = () => {
                 Số lượng kho
               </th>
               <th scope="col" className="px-2 py-3">
+                Size
+              </th>
+              <th scope="col" className="px-2 py-3">
                 Action
               </th>
             </tr>
           </thead>
           <tbody>
-            {products?.map((product) => (
+            {products?.map((product: any) => (
               <tr
                 key={product.id}
-                className="bg-white border-b dark:bg-gray-900 dark:border-gray-700 "
+                className={`bg-white border-b dark:bg-gray-900 dark:border-gray-700 ${
+                  product.status === 0 ? "text-line-through" : ""
+                }`}
               >
                 <th className="px-2 py-4">{product.id}</th>
-                <td className="w-13 pr-5">{product.name}</td>
+                <td className="w-13 pr-5">{product.nameProduct}</td>
                 <td className="w-20">
-                  <img
-                    src={product.images[0].url}
-                    alt={product.name}
-                    width={50}
-                    height={50}
-                  />
+                  <img src={product?.image[0]?.src} width={50} height={50} />
                 </td>
-                <td className="w-25 p-2">{product.description}</td>
-                <td className="px-3 py-4">{product.brand}</td>
+                <td className="w-25 p-2">{product?.description}</td>
+                <td className="px-3 py-4">{product?.brand?.title}</td>
                 <td className="w-[100px] text-red-500">
-                  {Number(product.price).toLocaleString()} VNĐ
+                  {Number(product?.price).toLocaleString()} VNĐ
                 </td>
 
-                <td className="px-5  py-4">{product.stock}</td>
+                <td className="px-5  py-4">{product?.stock}</td>
+                <td className="px-5  py-4">
+                  {product?.productSize?.map((item: any, index: number) => {
+                    return index == product?.productSize?.length - 1 ? (
+                      <a style={{ marginLeft: 10 }}>{item.size.sizeName}</a>
+                    ) : (
+                      <a style={{ marginLeft: 10 }}>{item.size.sizeName},</a>
+                    );
+                  })}
+                </td>
+
                 <td className="px-2 py-4 flex">
-                  <EditProduct getProduct={product} handleOk={handleUpdate} />
+                  {/* <EditProduct getProduct={product} handleOk={handleUpdate} /> */}
                   <button
                     type="button"
-                    className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 dark:shadow-lg dark:shadow-red-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+                    className={`text-white ${
+                      product.status === 0
+                        ? "bg-gradient-to-r from-green-400 via-green-500 to-green-600"
+                        : "bg-gradient-to-r from-red-400 via-red-500 to-red-600"
+                    } hover:bg-gradient-to-br focus:ring-4 focus:outline-none ${
+                      product.status === 0
+                        ? "focus:ring-green-300"
+                        : "focus:ring-red-300"
+                    } dark:focus:ring-red-800 shadow-lg ${
+                      product.status === 0
+                        ? "shadow-green-500/50"
+                        : "shadow-red-500/50"
+                    } dark:shadow-lg ${
+                      product.status === 0
+                        ? "dark:shadow-green-800/80"
+                        : "dark:shadow-red-800/80"
+                    } font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2`}
                     onClick={() => handleDelete(product.id)}
                   >
-                    Xóa
+                    {product.status === 0 ? "Unblock" : "Block"}
                   </button>
                 </td>
               </tr>

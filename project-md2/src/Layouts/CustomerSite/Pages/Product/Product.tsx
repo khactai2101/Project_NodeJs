@@ -3,17 +3,22 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { IProduct } from "../../../../Types/type";
 import { getAllProducts, getOneProduct } from "../../../../API";
-import { addToCart, getOneUser } from "../../../../API/user";
+import { getAllProductSize, getOneUser, addToCart } from "../../../../API/user";
 import { BsCartPlus } from "react-icons/Bs";
 
 import axios from "axios";
 import { message } from "antd";
 
 const Product = () => {
-  const id = useParams<{ id: string }>();
+  const token = localStorage.getItem("asscessToken");
+  const params = useParams();
+
   const [products, setProducts] = useState<any>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [capacity, setCapacity] = useState<any>(50);
+  const [percent, setPercent] = useState<any>();
+  const { id } = useParams();
+  const [sizeId, setSizeId] = useState();
 
   const handleDecrement = () => {
     if (quantity > 1) {
@@ -26,20 +31,23 @@ const Product = () => {
   };
 
   useEffect(() => {
-    //goi api dde thuc hien chuc nang hien thi tat ca cac san pham
-    const data = async () => {
-      const getOneProducts = await getOneProduct(id.id);
+    const handleGetOne = async (id: any) => {
+      const getOneProducts = await getOneProduct(id);
       setProducts(getOneProducts);
+      setPercent(getOneProducts.data.productSize[0].size.percent);
+      setSizeId(getOneProducts.data.productSize[0].size.id);
     };
-    data();
+    handleGetOne(params.id);
   }, []);
+
+  // console.log(products.data.productSize[0].size.percent);
+
   const [user, setUser] = useState<any>(null);
-  const idUser = localStorage.getItem("userID");
 
   useEffect(() => {
     //goi api dde thuc hien chuc nang hien thi tat ca cac san pham
     const user = async () => {
-      const getUser = await getOneUser(idUser);
+      const getUser = await getOneUser(token);
       setUser(getUser);
     };
     user();
@@ -48,53 +56,30 @@ const Product = () => {
 
   // handleAddToCart
 
+  const handlNewPrice = async (percent: any, sizeName: any) => {
+    setPercent(percent);
+    setSizeId(sizeName);
+  };
+
   const handleAddToCart = async () => {
-    // // tim sp trong cart user
-    // // sneu co thi tang quantity
-    // // neu chua co thi push vao cart
+    const getUser = await getOneUser(token);
+    const dataUser = await getUser.data.id;
 
-    // const response = await addToCart(user);
+    const getProductSize = await getAllProductSize();
+    // console.log(getProductSize);
+    // console.log(sizeId, Number(id));
 
-    const existingProduct = user?.cart?.find(
-      (item: IProduct) => item.id === products.id && item?.capacity === capacity
+    const filterProductSize = getProductSize.filter(
+      (item: any) => item.productId === Number(id) && item.sizeId === sizeId
     );
-    console.log("nnnnn", existingProduct?.capacity);
-    console.log(capacity);
 
-    if (existingProduct) {
-      // Kiểm tra xem capacity của sản phẩm tồn tại có khớp không
-      if (existingProduct?.capacity === capacity) {
-        existingProduct.quantity += quantity;
-        console.log("incart", existingProduct);
-      } else {
-        // Nếu capacity không khớp, thêm sản phẩm mới vào giỏ hàng
-        products.quantity = quantity;
-        products.capacity = capacity;
-        user.cart.push(products);
+    const dataCart = {
+      productSizeId: filterProductSize[0].id,
+      quantity,
+    };
 
-        console.log(33, user.cart);
-      }
-    }
-    if (existingProduct?.capacity !== capacity && !existingProduct) {
-      // Nếu capacity không khớp, thêm sản phẩm mới vào giỏ hàng
-      products.quantity = quantity;
-      products.capacity = capacity;
-      user.cart.push(products);
-
-      console.log(44, user.cart);
-    }
-    const response = await addToCart(user);
-    if ((response as any).status === 200) {
-      const getUser = await getOneUser(idUser);
-      setUser(getUser);
-      const getOneProducts = await getOneProduct(id.id);
-      setProducts(getOneProducts);
-      setCapacity(50);
-      message.open({
-        type: "success",
-        content: "Thêm vào giỏ hàng thành công",
-      });
-    }
+    const apiCart = await addToCart({ dataCart, token });
+    console.log(apiCart);
   };
 
   return (
@@ -106,52 +91,58 @@ const Product = () => {
             <Carousel className="lg:w-1/2 w-full object-cover h-[500px] object-center rounded border border-gray-200">
               <img
                 alt="..."
-                src={products?.images[0].url}
+                src={products?.data.image[0]?.src}
                 className="object-cover w-full h-full "
               />
               <img
                 alt="..."
-                src={products?.images[1].url}
+                src={products?.data.image[1]?.src}
                 className="object-cover w-full h-full "
               />
               <img
                 alt="..."
-                src={products?.images[2].url}
+                src={products?.data.image[2]?.src}
                 className="object-cover w-full h-full "
               />
             </Carousel>
+
             <div className="lg:w-1/2 w-full lg:pl-10 lg:py-6 mt-6 lg:mt-0">
               <h2 className="text-sm title-font text-gray-500 tracking-widest">
-                {products?.brand}
+                {products?.data.brand.title}
               </h2>
+
               <h1 className="text-gray-900 text-3xl title-font font-medium mb-1">
-                {products?.name}
+                {products?.data.nameProduct}
               </h1>
 
               <p className="leading-relaxed">
-                <span className="font-bold">{products?.name} </span>
-                {products?.description}
+                <span className="font-bold">{products?.data.nameProduct} </span>
+                {products?.data.description}
               </p>
               <div className="flex mt-6 items-center pb-3 border-b-2 border-gray-200 mb-5">
                 <div className="flex ml-6 items-center">
                   <span className="mr-3">Dung tích</span>
+
                   <div className="relative ">
-                    <button
-                      onClick={() => setCapacity(50)}
-                      className=" relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 group-hover:from-red-200 group-hover:via-red-300 group-hover:to-yellow-200 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400"
-                    >
-                      <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-                        50ml
-                      </span>
-                    </button>
-                    <button
-                      onClick={() => setCapacity(100)}
-                      className="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 group-hover:from-red-200 group-hover:via-red-300 group-hover:to-yellow-200 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400"
-                    >
-                      <span className="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-                        100ml
-                      </span>
-                    </button>
+                    {products?.data?.productSize?.map((item: any) => {
+                      const sizeName = item.size.sizeName;
+                      // console.log(item.size.percent);
+                      // console.log(products?.data.price);
+
+                      return (
+                        <button
+                          onClick={() => {
+                            handlNewPrice(item?.size?.percent, item?.size?.id);
+                          }}
+                          key={item.id}
+                          className="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 group-hover:from-red-200 group-hover:via-red-300 group-hover:to-yellow-200 dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-red-100 dark:focus:ring-red-400"
+                        >
+                          <span className="relative px-4 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover-bg-opacity-0">
+                            {sizeName}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 <div className="flex items-center gap-1">
@@ -179,9 +170,15 @@ const Product = () => {
                   </button>
                 </div>
               </div>
+
               <div className="flex">
                 <span className="title-font font-medium text-2xl text-red-400">
-                  {Number(products?.price).toLocaleString()} VNĐ
+                  {percent !== undefined
+                    ? Number(
+                        products?.data.price * percent * quantity
+                      ).toLocaleString()
+                    : (products?.data.price * quantity).toLocaleString()}
+                  VNĐ
                 </span>
                 <button
                   onClick={handleAddToCart}

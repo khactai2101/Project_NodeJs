@@ -49,7 +49,7 @@ export const getAllProductSize = async () => {
         },
       ],
       attributes: {
-        exclude: ["createdAt", "updatedAt", "productId", "sizeId"], // bỏ những cái không cần thiết
+        exclude: ["createdAt", "updatedAt"], // bỏ những cái không cần thiết
       },
       //   include: [
       //     {

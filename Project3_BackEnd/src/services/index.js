@@ -10,4 +10,6 @@ export * from "./productService";
 export * from "./sizeService";
 export * from "./productSizeService";
 export * from "./favoriteService";
-export * from "./cartItemService";
+export * from "./cartService";
+export * from "./orderItemService";
+export * from "./orderService";

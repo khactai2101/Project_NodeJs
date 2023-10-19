@@ -9,14 +9,15 @@ const initRouters = require("./src/routers");
 const upload = require("./src/middlewares/uploadFile");
 app.use(express.static(__dirname + "/src/public/uploads"));
 
-app.use(express.urlencoded({ extended: false }));
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "DELETE", "PUT"],
-  })
-);
+// app.use(express.urlencoded({ extended: false }));
+const corsOptions = {
+  origin: "*",
+  // credentials: true, //access-control-allow-credentials:true
+  optionSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const port = process.env.APP_PORT || 3000;
 

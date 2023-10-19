@@ -12,10 +12,10 @@ export const registerService = async ({ fullName, email, password }) => {
       email,
       password: hashPassword,
     });
+    console.log(response, "hihihii");
     return {
-      success: response[1] === true ? true : false,
-      message:
-        response[1] === true ? "Create User successfully" : "User is available",
+      success: response[1] ? true : false,
+      message: response[1] ? "Create User successfully" : "User is available",
     };
   } catch (error) {
     return error;

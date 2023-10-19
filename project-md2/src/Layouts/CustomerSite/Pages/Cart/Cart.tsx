@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { getOneUser } from "../../../../API/user";
+import {
+  getOneUser,
+  getAllCartByUser,
+  createOrderItem,
+  createOrder,
+} from "../../../../API/user";
 import { IProduct } from "../../../../Types/type";
 import { message } from "antd";
 
 const Cart = () => {
+  const token = localStorage.getItem("asscessToken");
   const [quantity, setQuantity] = useState<number>(1);
 
   const [address, setAddress] = useState<string>("");
@@ -19,29 +25,42 @@ const Cart = () => {
     setQuantity(quantity + 1);
   };
   const [user, setUser] = useState<any>(null);
-  // const [sum, setSum] = useState<number>();
-
-  const idUser = localStorage.getItem("userID");
+  const [cart, setCart] = useState<any>();
 
   useEffect(() => {
     //goi api dde thuc hien chuc nang hien thi tat ca cac san pham
-    const user = async () => {
-      const getUser = await getOneUser(idUser);
+    const userCart = async () => {
+      const getUser = await getOneUser(token);
+      const getAllCart = await getAllCartByUser(token);
+      // console.log((getAllCart as any).data.data);
+      setCart((getAllCart as any).data.data);
       setUser(getUser);
     };
-    user();
+    userCart();
   }, []);
-  // tinh tong tien
-  const totalPrice = user?.cart?.reduce((acc: any, item: any) => {
-    return acc + item.price * item.quantity;
-  }, 0);
-  const totalPricetoLocaleStrings =
-    totalPrice !== undefined && totalPrice.toLocaleString();
-
+  // console.log(cart);
+  const totalPricetoLocaleStrings = cart
+    ?.reduce(
+      (total: number, item: any) =>
+        total + item.productSize.product.price * item.quantity,
+      0
+    )
+    .toLocaleString();
   const handleDelete = (id: number) => {
     console.log(id);
   };
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
+    const orderItem = await createOrderItem(token);
+    console.log((orderItem as any).data);
+    if ((orderItem as any).data.data.length > 0) {
+      const createOrders = {
+        paymentId: 1,
+        addressId: 1,
+        token,
+      };
+      const apiCreateOrder = await createOrder(createOrders);
+      console.log(apiCreateOrder);
+    }
     message.open({
       type: "success",
       content: "Đặt hàng thành công",
@@ -64,35 +83,28 @@ const Cart = () => {
             </header>
             <div className="mt-8">
               <ul className="space-y-4">
-                {user?.cart.map((item: any) => {
+                {cart?.map((item: any) => {
                   return (
                     <li className="flex items-center gap-4">
                       <img
-                        src={item.images[0].url}
+                        src={item.productSize.product.image[0].src}
                         alt=""
                         className="h-16 w-16 rounded object-cover"
                       />
                       <div>
                         <h3 className="text-sm text-gray-900 w-[350px]">
-                          {item.name}
+                          {item.productSize.product.nameProduct}
                         </h3>
                         <dl className="mt-0.5 space-y-px text-[10px] text-gray-600">
                           <div>
                             <dt className="inline">
-                              Dung tích: {item.capacity} ML
+                              Kích cỡ: {item.productSize.size.sizeName}
                             </dt>
                           </div>
                         </dl>
                       </div>
                       <div className="flex flex-1 items-center justify-end gap-2">
                         <div className="flex items-center gap-1">
-                          {/* <button
-                            type="button"
-                            className="h-10 w-10 leading-10 text-gray-600 transition hover:opacity-75"
-                            onClick={handleDecrement}
-                          >
-                            −
-                          </button> */}
                           <input
                             type="number"
                             id="Quantity"
@@ -101,16 +113,12 @@ const Cart = () => {
                             className=" h-10 w-24 rounded border-gray-200 sm:text-sm text-center"
                             disabled={true}
                           />
-                          {/* <button
-                            type="button"
-                            className="h-10 w-10 leading-10 text-gray-600 transition hover:opacity-75"
-                            onClick={handleIncrement}
-                          >
-                            +
-                          </button> */}
                         </div>
                         <p className="text-red-400 w-[150px]">
-                          {(item.price * item.quantity).toLocaleString()} VNĐ
+                          {(
+                            item.productSize.product.price * item.quantity
+                          ).toLocaleString()}{" "}
+                          VNĐ
                         </p>
                         <button className="text-gray-600 transition hover:text-red-600">
                           <span className="sr-only">Remove item</span>

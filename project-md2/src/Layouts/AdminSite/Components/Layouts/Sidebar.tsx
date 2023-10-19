@@ -6,30 +6,18 @@ import { getOneUser } from "../../../../API/user";
 import logo from "../../../../assets/images/logo-kyo.png";
 
 const Sidebar = () => {
-  const getData = localStorage.getItem("userID");
+  const getData = localStorage.getItem("asscessToken");
   // const isCheck = JSON.parse(getData || "");
 
   const [users, setUsers] = useState<any>([]);
   // const [userEmail, setUserEmail] = useState<string>("");
   const [isCheck, setIsCheck] = useState(getData);
 
-  useEffect(() => {
-    //goi api dde thuc hien chuc nang hien thi
-
-    const data = async () => {
-      const oneUser = await getOneUser(isCheck);
-
-      setUsers(oneUser);
-    };
-    data();
-  }, []);
-
   const navigate = useNavigate();
   const handleLogout = () => {
-    localStorage.removeItem("userID");
+    localStorage.removeItem("asscessToken");
     setIsCheck(null);
   };
-  console.log(isCheck);
 
   return (
     <>

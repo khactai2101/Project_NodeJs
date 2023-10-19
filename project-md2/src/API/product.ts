@@ -1,8 +1,12 @@
 import axios from "axios";
 
-export const getAllProducts = () => {
+const token = localStorage.getItem("asscessToken");
+
+export const getAllProducts = (token: any) => {
   return axios
-    .get("http://localhost:8080/product")
+    .get("http://localhost:8080/api/v1/products", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
     .then((response) => {
       return response.data;
     })
@@ -12,26 +16,27 @@ export const getAllProducts = () => {
     });
 };
 
-export const deleteProducts = (id: number) => {
+export const BlockProducts = (data: any) => {
   return axios
-    .delete(`http://localhost:8080/product/${id}`)
+    .delete(`http://localhost:8080/api/v1/products/${data.id}`, {
+      headers: { Authorization: `Bearer ${data.token}` },
+    })
     .then((response) => {
-      console.log(response.data);
-      return response.data;
+      return response;
     })
     .catch((error) => {
       console.error("Error!!!!", error);
     });
 };
 
-export const getOneProduct = (id: any) => {
+export const getOneProduct = (id: number) => {
   return axios
-    .get(`http://localhost:8080/product/${id}`)
+    .get(`http://localhost:8080/api/v1/products/${id}`)
     .then((response) => {
       return response.data;
     })
     .catch((error) => {
       console.error("Error!!!!", error);
-      return [];
+      throw error;
     });
 };

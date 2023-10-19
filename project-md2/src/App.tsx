@@ -33,7 +33,6 @@ function App(): JSX.Element {
         <Route index element={<Home />}></Route>
         <Route path="cart" element={<Cart />}></Route>
         <Route path="checkout" element={<Checkout />}></Route>
-
         <Route path="product/:id" element={<Product />}></Route>
       </Route>
       {/**Admin */}

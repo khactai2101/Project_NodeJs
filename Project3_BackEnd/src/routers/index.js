@@ -10,7 +10,9 @@ import productRouter from "./productRouter";
 import sizeRouter from "./sizeRouter";
 import productSizeRouter from "./productSizeRouter";
 import favoriteRouter from "./favoriteRouter";
-import cartItemRouter from "./cartItemRouter";
+import cartRouter from "./cartRouter";
+import orderItemRouter from "./orderItemRouter";
+import orderRouter from "./orderRouter";
 
 const initRouters = (app) => {
   const initLink = "/api/v1";
@@ -27,7 +29,9 @@ const initRouters = (app) => {
   app.use(`${initLink}/sizes`, sizeRouter);
   app.use(`${initLink}/productSizes`, productSizeRouter);
   app.use(`${initLink}/favorites`, favoriteRouter);
-  app.use(`${initLink}/cartItems`, cartItemRouter);
+  app.use(`${initLink}/cart`, cartRouter);
+  app.use(`${initLink}/orderItems`, orderItemRouter);
+  app.use(`${initLink}/order`, orderRouter);
 };
 
 module.exports = initRouters;

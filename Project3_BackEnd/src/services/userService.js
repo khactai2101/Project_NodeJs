@@ -62,8 +62,7 @@ export const deleteUserServices = async ({ id }) => {
       };
     }
     return {
-      success: response > 0 ? true : false,
-      message: `Delete User successfully`,
+      data: response,
     };
   } catch (error) {
     return error;
